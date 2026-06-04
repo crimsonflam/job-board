@@ -4,13 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Application extends Model
 {
+    // Cover letters are not part of this application's workflow — an
+    // application is a CV/resume, its status, and the employer's response.
     protected $fillable = [
-        'user_id', 'job_listing_id', 'cover_letter', 'resume_path', 'status', 'employer_notes',
+        'user_id', 'job_listing_id',
+        'resume_path', 'resume_file_name', 'cv_is_default',
+        'status', 'response_message', 'responded_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'cv_is_default' => 'boolean',
+            'responded_at' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -22,20 +33,38 @@ class Application extends Model
         return $this->belongsTo(JobListing::class);
     }
 
-    public function conversation(): HasOne
+    // MOD 19: conversation() relation removed — messaging feature deleted.
+    // The employer's accept/reject `response_message` is the only communication.
+
+    /**
+     * Whether the employer has responded yet.
+     * `pending` is the "No Response Yet" state.
+     */
+    public function hasResponse(): bool
     {
-        return $this->hasOne(Conversation::class);
+        return $this->status !== 'pending';
     }
 
+    /**
+     * Tailwind colour key for the status badge.
+     * pending = gray ("No Response"), accepted = green, rejected = red.
+     */
     public function statusBadgeColor(): string
     {
         return match ($this->status) {
-            'pending' => 'yellow',
-            'reviewed' => 'blue',
-            'shortlisted' => 'indigo',
+            'accepted' => 'green',
             'rejected' => 'red',
-            'hired' => 'green',
-            default => 'gray',
+            default => 'gray', // pending / no response yet
+        };
+    }
+
+    /** Human-readable status label for the seeker view. */
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'accepted' => 'Accepted',
+            'rejected' => 'Rejected',
+            default => 'No Response Yet',
         };
     }
 }

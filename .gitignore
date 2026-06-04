@@ -65,6 +65,9 @@ Homestead.yaml
 
 # --- Project local docs / scratch ---
 PROJECT_DOCUMENTATION.txt
+PROJECT_DOCUMENTATION.md
+/docs
+/documentation
 /notes
 /scratch
 *.local.md

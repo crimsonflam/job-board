@@ -13,7 +13,7 @@
         <h1 class="text-xl font-bold text-gray-900">Apply for this Position</h1>
         <div class="mt-3">
             <h2 class="text-lg font-semibold text-gray-800">{{ $jobListing->title }}</h2>
-            <p class="text-gray-600">{{ $jobListing->company->name }}</p>
+            <p class="text-gray-600">{{ $jobListing->user->company_name }}</p>
         </div>
     </div>
 
@@ -41,21 +41,8 @@
         @csrf
 
         <div class="p-6 space-y-6">
-            {{-- Cover Letter --}}
-            <div>
-                <label for="cover_letter" class="block text-sm font-medium text-gray-700">Cover Letter</label>
-                <p class="mt-1 text-xs text-gray-500">Introduce yourself and explain why you're a great fit for this role.</p>
-                <textarea
-                    id="cover_letter"
-                    name="cover_letter"
-                    rows="8"
-                    class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('cover_letter') border-red-300 @enderror"
-                    placeholder="Dear Hiring Manager..."
-                >{{ old('cover_letter') }}</textarea>
-                @error('cover_letter')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
+            {{-- Cover letters are not part of this application's workflow: the
+                 apply step is CV/resume only (see Phase 2 for the full apply modal). --}}
 
             {{-- Resume Upload --}}
             <div>

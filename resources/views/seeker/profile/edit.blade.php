@@ -2,200 +2,147 @@
 
 @section('title', 'Edit Profile')
 
+{{--
+    ============================================================
+    WHAT: Job-seeker profile edit (simplified).
+    MOD 9:  Fields kept = Full Name, Email, Phone, Website, Bio (max 250, with
+            counter), and the CV. NO avatar or any image upload — removed to
+            reduce complexity.
+    MOD 10: CV is PDF ONLY, max 5MB. Once uploaded we show the file name,
+            upload date, and Download / Replace / Delete controls.
+    ============================================================
+--}}
+
 @section('content')
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="mb-6">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ bio: @js(old('bio', $user->bio ?? '')) }">
+
+    <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
-        <p class="mt-1 text-gray-600">Keep your profile up to date to attract the right opportunities.</p>
+        <p class="mt-1 text-sm text-gray-500">Keep your details up to date. Your CV is required before you can apply to jobs.</p>
     </div>
 
-    {{-- Validation Errors --}}
-    @if ($errors->any())
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div class="flex">
-                <svg class="h-5 w-5 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
-                    <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
+    @if($errors->any())
+        <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 class="text-sm font-medium text-red-800 mb-2">Please fix the following errors:</h3>
+            <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>
         </div>
     @endif
 
-    {{-- Success Message --}}
-    @if (session('success'))
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div class="flex">
-                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="ml-3 text-sm font-medium text-green-800">{{ session('success') }}</p>
-            </div>
-        </div>
-    @endif
-
-    <form action="{{ route('seeker.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    {{-- ---------- Personal info form (MOD 9). No file upload here. ---------- --}}
+    <form action="{{ route('seeker.profile.update') }}" method="POST"
+          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
         @csrf
         @method('PUT')
 
-        {{-- Personal Information --}}
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('name') border-red-300 @enderror" />
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" value="{{ old('phone', $profile->phone ?? '') }}"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('phone') border-red-300 @enderror" />
-                    @error('phone')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
-                    <input type="text" id="location" name="location" value="{{ old('location', $profile->location ?? '') }}" placeholder="e.g. New York, NY"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('location') border-red-300 @enderror" />
-                    @error('location')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="website" class="block text-sm font-medium text-gray-700">Website / Portfolio</label>
-                    <input type="url" id="website" name="website" value="{{ old('website', $profile->website ?? '') }}" placeholder="https://"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('website') border-red-300 @enderror" />
-                    @error('website')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="md:col-span-2">
-                    <label for="bio" class="block text-sm font-medium text-gray-700">Bio</label>
-                    <textarea id="bio" name="bio" rows="4" placeholder="Tell employers about yourself..."
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('bio') border-red-300 @enderror">{{ old('bio', $profile->bio ?? '') }}</textarea>
-                    @error('bio')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
+        <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+            <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required maxlength="100"
+                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm">
         </div>
 
-        {{-- Professional Details --}}
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Professional Details</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label for="skills" class="block text-sm font-medium text-gray-700">Skills</label>
-                    <p class="mt-0.5 text-xs text-gray-500">Separate skills with commas (e.g. PHP, Laravel, JavaScript)</p>
-                    <input type="text" id="skills" name="skills"
-                        value="{{ old('skills', isset($profile) && $profile->skills ? (is_array($profile->skills) ? implode(', ', $profile->skills) : $profile->skills) : '') }}"
-                        placeholder="PHP, Laravel, JavaScript, Vue.js"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('skills') border-red-300 @enderror" />
-                    @error('skills')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="expected_salary" class="block text-sm font-medium text-gray-700">Expected Salary (Annual)</label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">$</span>
-                        </div>
-                        <input type="number" id="expected_salary" name="expected_salary" value="{{ old('expected_salary', $profile->expected_salary ?? '') }}"
-                            placeholder="0"
-                            class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('expected_salary') border-red-300 @enderror" />
-                    </div>
-                    @error('expected_salary')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="availability" class="block text-sm font-medium text-gray-700">Availability</label>
-                    <select id="availability" name="availability"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('availability') border-red-300 @enderror">
-                        <option value="">Select availability</option>
-                        <option value="available" {{ old('availability', $profile->availability ?? '') === 'available' ? 'selected' : '' }}>Available</option>
-                        <option value="open_to_offers" {{ old('availability', $profile->availability ?? '') === 'open_to_offers' ? 'selected' : '' }}>Open to Offers</option>
-                        <option value="not_available" {{ old('availability', $profile->availability ?? '') === 'not_available' ? 'selected' : '' }}>Not Available</option>
-                    </select>
-                    @error('availability')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+            <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
+                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm">
         </div>
 
-        {{-- File Uploads --}}
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Uploads</h2>
-            <div class="space-y-6">
-                {{-- Avatar --}}
-                <div>
-                    <label for="avatar" class="block text-sm font-medium text-gray-700">Profile Photo</label>
-                    <div class="mt-2 flex items-center space-x-4">
-                        @if (isset($profile) && $profile->avatar)
-                            <img src="{{ Storage::url($profile->avatar) }}" alt="Current avatar" class="h-16 w-16 rounded-full object-cover" />
-                        @else
-                            <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
-                                <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                            </div>
-                        @endif
-                        <input type="file" id="avatar" name="avatar" accept="image/*"
-                            class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                    </div>
-                    @error('avatar')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Resume --}}
-                <div>
-                    <label for="resume" class="block text-sm font-medium text-gray-700">Resume</label>
-                    @if (isset($profile) && $profile->resume_path)
-                        <p class="mt-1 text-sm text-gray-500">
-                            Current file: <span class="font-medium text-gray-700">{{ basename($profile->resume_path) }}</span>
-                        </p>
-                    @endif
-                    <div class="mt-2">
-                        <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx"
-                            class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500">PDF, DOC, or DOCX (max 5MB). Leave empty to keep current file.</p>
-                    @error('resume')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
+        <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+            <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" required maxlength="20"
+                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                placeholder="Phone Number">
         </div>
 
-        {{-- Submit --}}
+        <div>
+            <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website <span class="text-gray-400 font-normal">(optional)</span></label>
+            <input type="url" name="website" id="website" value="{{ old('website', $user->website) }}"
+                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                placeholder="Website URL">
+        </div>
+
+        {{-- Bio with a live counter capped at 250 (MOD 9). --}}
+        <div>
+            <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">Bio <span class="text-gray-400 font-normal">(optional)</span></label>
+            <textarea name="bio" id="bio" rows="4" maxlength="250" x-model="bio"
+                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                placeholder="Bio"></textarea>
+            <p class="mt-1 text-right text-xs text-gray-400"><span x-text="bio.length"></span>/250</p>
+        </div>
+
         <div class="flex items-center justify-end space-x-3">
-            <a href="{{ route('seeker.dashboard') }}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                Cancel
-            </a>
-            <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Save Profile
-            </button>
+            <a href="{{ route('seeker.dashboard') }}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</a>
+            <button type="submit" class="px-6 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition">Save</button>
         </div>
     </form>
+
+    {{-- ---------- CV section (MOD 10). Separate form so its file upload and
+         the delete action don't interfere with the text form above. ---------- --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">CV / Resume</h2>
+        <p class="text-sm text-gray-500 mb-4">PDF only, max 5MB. Required before applying to jobs.</p>
+
+        @if($user->hasDefaultResume())
+            {{-- Current CV: confirmation + file details + Download / Delete. --}}
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+                <div class="flex items-center min-w-0">
+                    <svg class="h-9 w-9 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <div class="ml-3 min-w-0">
+                        {{-- MOD 10: green success confirmation with a check icon (no emoji). --}}
+                        <p class="text-sm font-medium text-green-700 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            CV uploaded successfully
+                        </p>
+                        <p class="text-sm text-gray-700 truncate">{{ $user->resume_file_name ?? 'Resume.pdf' }}</p>
+                        @if($user->resume_uploaded_at)
+                            <p class="text-xs text-gray-400">Uploaded on {{ $user->resume_uploaded_at->format('M d, Y') }}</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    {{-- Download (forced download via controller). --}}
+                    <a href="{{ route('seeker.cv.download') }}"
+                       class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                        Download
+                    </a>
+                    {{-- Delete with confirmation (MOD 10). --}}
+                    <form action="{{ route('seeker.cv.delete') }}" method="POST"
+                          onsubmit="return confirm('Delete your CV? You will need to upload one again before applying.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
+        {{-- Upload / Replace form (PDF only). When a CV already exists this acts
+             as "Replace"; the controller deletes the old file first. We resubmit
+             the existing text fields (hidden) so the shared update() validation —
+             which requires name/email/phone — passes without blanking them. --}}
+        <form action="{{ route('seeker.profile.update') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="name" value="{{ $user->name }}">
+            <input type="hidden" name="email" value="{{ $user->email }}">
+            <input type="hidden" name="phone" value="{{ $user->phone }}">
+            <input type="hidden" name="website" value="{{ $user->website }}">
+            <input type="hidden" name="bio" value="{{ $user->bio }}">
+
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $user->hasDefaultResume() ? 'Replace CV' : 'Upload CV' }}</label>
+            {{-- MOD 10: accept PDF only. Server also validates mimes:pdf. --}}
+            <input type="file" name="resume" accept="application/pdf" required
+                class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+            @error('resume') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+
+            <button type="submit" class="mt-3 px-5 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition">
+                {{ $user->hasDefaultResume() ? 'Replace CV' : 'Upload CV' }}
+            </button>
+        </form>
+    </div>
 </div>
 @endsection

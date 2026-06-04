@@ -2,41 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Company;
-use App\Models\JobListing;
-
 class HomeController extends Controller
 {
+    // ============================================================
+    // WHAT: Renders the guest landing page (two-button hero).
+    // WHY:  The redesign requires that logged-in users NEVER see the
+    //       marketing home page again — once authenticated they belong
+    //       on their role-specific dashboard. So before rendering the
+    //       guest view we short-circuit authenticated users to the
+    //       generic /dashboard route, which itself fans out to the
+    //       admin / employer / seeker dashboard based on role
+    //       (see DashboardController).
+    //
+    //       The previous version eagerly loaded featured jobs, latest
+    //       jobs, categories and "top companies" for a rich landing
+    //       page. The new minimal hero needs none of that data, so the
+    //       queries were removed — fewer DB round-trips on every visit.
+    // ============================================================
     public function index()
     {
-        $featuredJobs = JobListing::published()
-            ->featured()
-            ->with('company')
-            ->latest('published_at')
-            ->limit(6)
-            ->get();
+        // Authenticated users are routed to their dashboard, not the
+        // guest home page. `route('dashboard')` resolves the correct
+        // role dashboard via DashboardController.
+        if (auth()->check()) {
+            return redirect()->route('dashboard');
+        }
 
-        $latestJobs = JobListing::published()
-            ->with(['company', 'category'])
-            ->latest('published_at')
-            ->limit(10)
-            ->get();
-
-        $categories = Category::withCount(['jobListings' => fn ($q) => $q->published()])->get();
-
-        $topCompanies = Company::where('is_verified', true)
-            ->withCount(['jobListings' => fn ($q) => $q->published()])
-            ->orderByDesc('job_listings_count')
-            ->limit(6)
-            ->get();
-
-        $stats = [
-            'jobs' => JobListing::published()->count(),
-            'companies' => Company::count(),
-            'categories' => Category::count(),
-        ];
-
-        return view('home', compact('featuredJobs', 'latestJobs', 'categories', 'topCompanies', 'stats'));
+        // Guests see the minimal two-button landing page.
+        return view('home');
     }
 }

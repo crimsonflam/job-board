@@ -2,112 +2,124 @@
 
 @section('title', 'My Applications')
 
+{{--
+    ============================================================
+    WHAT: "My Applications" — a card list of every job the seeker applied
+          to, showing the employer's response status and message.
+    WHY:  This is where a seeker learns the outcome of each application.
+          The status badge + the employer's written response are the two
+          most important things, so they're given visual prominence.
+    STATUS MODEL (seeker-facing):
+          pending  → "No Response Yet"  (gray)
+          accepted → "Accepted ✓"       (green) + employer message
+          rejected → "Rejected ✗"       (red)   + employer message
+    ============================================================
+--}}
+
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900">My Applications</h1>
-        <p class="mt-1 text-gray-600">Track the status of all your job applications.</p>
+        <p class="mt-1 text-gray-500 text-sm">Track the status of all your job applications.</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        {{-- Desktop Table --}}
-        <div class="hidden md:block">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Applied</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($applications as $application)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $application->jobListing->title }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-600">{{ $application->jobListing->company->name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500">{{ $application->created_at->format('M d, Y') }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $statusColors = [
-                                        'pending' => 'bg-yellow-100 text-yellow-800',
-                                        'reviewed' => 'bg-blue-100 text-blue-800',
-                                        'shortlisted' => 'bg-indigo-100 text-indigo-800',
-                                        'rejected' => 'bg-red-100 text-red-800',
-                                        'hired' => 'bg-green-100 text-green-800',
-                                    ];
-                                    $color = $statusColors[$application->status] ?? 'bg-gray-100 text-gray-800';
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
-                                    {{ ucfirst($application->status) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <a href="{{ route('seeker.applications.show', $application) }}" class="text-blue-600 hover:text-blue-800 font-medium">View Details</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                                <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <p class="mt-2 text-sm">You haven't submitted any applications yet.</p>
-                                <a href="{{ route('jobs.index') }}" class="mt-3 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">Browse Available Jobs</a>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    {{-- Filter + sort controls (only shown when there are applications). --}}
+    @if($applications->total() > 0)
+        <form action="{{ route('seeker.applications.index') }}" method="GET"
+              class="flex flex-wrap items-center gap-3 mb-6">
+            {{-- Filter by status --}}
+            <div class="flex items-center gap-2">
+                <label for="status" class="text-sm text-gray-600">Status:</label>
+                <select name="status" id="status" onchange="this.form.submit()"
+                    class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="all"      {{ $status === 'all' ? 'selected' : '' }}>All Applications</option>
+                    <option value="pending"  {{ $status === 'pending' ? 'selected' : '' }}>No Response Yet</option>
+                    <option value="accepted" {{ $status === 'accepted' ? 'selected' : '' }}>Accepted</option>
+                    <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
+            {{-- Sort --}}
+            <div class="flex items-center gap-2">
+                <label for="sort" class="text-sm text-gray-600">Sort by:</label>
+                <select name="sort" id="sort" onchange="this.form.submit()"
+                    class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
+                    <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                    <option value="status" {{ $sort === 'status' ? 'selected' : '' }}>By Status</option>
+                </select>
+            </div>
+        </form>
+    @endif
 
-        {{-- Mobile Cards --}}
-        <div class="md:hidden divide-y divide-gray-200">
-            @forelse ($applications as $application)
-                <div class="p-4">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h3 class="text-sm font-medium text-gray-900">{{ $application->jobListing->title }}</h3>
-                            <p class="text-sm text-gray-500">{{ $application->jobListing->company->name }}</p>
-                            <p class="text-xs text-gray-400 mt-1">{{ $application->created_at->format('M d, Y') }}</p>
-                        </div>
-                        @php
-                            $statusColors = [
-                                'pending' => 'bg-yellow-100 text-yellow-800',
-                                'reviewed' => 'bg-blue-100 text-blue-800',
-                                'shortlisted' => 'bg-indigo-100 text-indigo-800',
-                                'rejected' => 'bg-red-100 text-red-800',
-                                'hired' => 'bg-green-100 text-green-800',
-                            ];
-                            $color = $statusColors[$application->status] ?? 'bg-gray-100 text-gray-800';
-                        @endphp
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
-                            {{ ucfirst($application->status) }}
-                        </span>
-                    </div>
-                    <div class="mt-2">
-                        <a href="{{ route('seeker.applications.show', $application) }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View Details</a>
+    {{-- Application cards --}}
+    @forelse($applications as $application)
+        @php
+            // Map status → badge style + label + (for accepted) a celebratory prefix.
+            $statusMeta = match($application->status) {
+                'accepted' => ['classes' => 'bg-green-100 text-green-800', 'label' => 'Accepted ✓'],
+                'rejected' => ['classes' => 'bg-red-100 text-red-800',     'label' => 'Rejected ✗'],
+                default     => ['classes' => 'bg-gray-100 text-gray-700',   'label' => 'No Response Yet'],
+            };
+        @endphp
+
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 mb-4">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    {{-- Job title links to the job details page. --}}
+                    <h3 class="text-base font-semibold text-gray-900 truncate">
+                        <a href="{{ route('jobs.show', $application->jobListing->slug) }}" class="hover:text-primary-600">
+                            {{ $application->jobListing->title }}
+                        </a>
+                    </h3>
+                    <p class="text-sm font-medium text-gray-500">{{ $application->jobListing->user->company_name ?? 'Company' }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Applied on {{ $application->created_at->format('M d, Y') }}</p>
+                </div>
+                {{-- Status badge --}}
+                <span class="flex-shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusMeta['classes'] }}">
+                    {{ $statusMeta['label'] }}
+                </span>
+            </div>
+
+            {{-- Employer's response message (shown once they've replied). --}}
+            @if($application->hasResponse() && $application->response_message)
+                <div x-data="{ expanded: false }" class="mt-4">
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
+                        <p class="text-sm text-gray-700"
+                           :class="expanded ? '' : 'line-clamp-2'">
+                            @if($application->status === 'accepted')🎉 @endif{{ $application->response_message }}
+                        </p>
+                        {{-- "Show more" toggle for long messages. --}}
+                        <button type="button" @click="expanded = !expanded"
+                            class="mt-1 text-xs font-medium text-primary-600 hover:text-primary-700"
+                            x-text="expanded ? 'Show less' : 'Show more'"></button>
                     </div>
                 </div>
-            @empty
-                <div class="p-8 text-center text-gray-500">
-                    <p class="text-sm">You haven't submitted any applications yet.</p>
-                    <a href="{{ route('jobs.index') }}" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">Browse Available Jobs</a>
-                </div>
-            @endforelse
+            @endif
         </div>
-    </div>
+    @empty
+        {{-- Empty state — distinguishes "no applications at all" from
+             "no applications match this filter". --}}
+        <div class="bg-white border border-gray-200 rounded-xl p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            @if($status !== 'all')
+                <h3 class="mt-3 text-base font-semibold text-gray-900">No {{ $status }} applications</h3>
+                <p class="mt-1 text-sm text-gray-500">Try a different status filter.</p>
+                <a href="{{ route('seeker.applications.index') }}" class="inline-block mt-4 text-sm text-primary-600 hover:text-primary-700 font-medium">Show all applications</a>
+            @else
+                <h3 class="mt-3 text-base font-semibold text-gray-900">You haven't applied to any jobs yet.</h3>
+                <a href="{{ route('jobs.index') }}" class="inline-block mt-4 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition">
+                    Browse Jobs
+                </a>
+            @endif
+        </div>
+    @endforelse
 
-    @if ($applications->hasPages())
+    @if($applications->hasPages())
         <div class="mt-6">
-            {{ $applications->links() }}
+            {{ $applications->withQueryString()->links() }}
         </div>
     @endif
 </div>

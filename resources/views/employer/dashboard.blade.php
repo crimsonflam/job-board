@@ -8,20 +8,14 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div class="flex items-center space-x-3">
+            {{-- $company is the employer's own user record; company_name holds
+                 their company. (Verification was removed with the companies table.) --}}
             <h1 class="text-2xl font-bold text-gray-900">
-                {{ $company->name ?? 'My Company' }}
+                {{ $company->company_name ?? 'My Company' }}
             </h1>
-            @if($company && $company->is_verified)
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    Verified
-                </span>
-            @endif
         </div>
         <div class="mt-4 sm:mt-0 flex space-x-3">
-            <a href="{{ route('employer.jobs.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+            <a href="{{ route('employer.jobs.create') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Post New Job
             </a>
@@ -38,11 +32,12 @@
             <div class="text-sm font-medium text-gray-500">Total Applications</div>
             <div class="mt-2 text-3xl font-bold text-gray-900">{{ $totalApplications }}</div>
         </div>
-        @if($jobStats)
-            @foreach($jobStats as $stat)
+        {{-- $jobStats is a status => count collection (keyed by job status). --}}
+        @if($jobStats && count($jobStats))
+            @foreach($jobStats as $statusName => $count)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div class="text-sm font-medium text-gray-500">{{ ucfirst($stat->status) }} Jobs</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-900">{{ $stat->count }}</div>
+                    <div class="text-sm font-medium text-gray-500">{{ ucfirst($statusName) }} Jobs</div>
+                    <div class="mt-2 text-3xl font-bold text-gray-900">{{ $count }}</div>
                 </div>
             @endforeach
         @endif
@@ -50,8 +45,8 @@
 
     {{-- Quick Links --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <a href="{{ route('employer.jobs.create') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center space-x-4 hover:border-indigo-300 hover:shadow-md transition">
-            <div class="flex-shrink-0 w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+        <a href="{{ route('employer.jobs.create') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center space-x-4 hover:border-primary-300 hover:shadow-md transition">
+            <div class="flex-shrink-0 w-10 h-10 bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             </div>
             <div>
@@ -59,17 +54,17 @@
                 <div class="text-xs text-gray-500">Create a new listing</div>
             </div>
         </a>
-        <a href="{{ route('employer.jobs.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center space-x-4 hover:border-indigo-300 hover:shadow-md transition">
-            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6"/></svg>
+        <a href="{{ route('employer.applicants.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center space-x-4 hover:border-primary-300 hover:shadow-md transition">
+            <div class="flex-shrink-0 w-10 h-10 bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <div>
-                <div class="text-sm font-semibold text-gray-900">View All Jobs</div>
-                <div class="text-xs text-gray-500">Manage your listings</div>
+                <div class="text-sm font-semibold text-gray-900">View Applicants</div>
+                <div class="text-xs text-gray-500">Review candidates</div>
             </div>
         </a>
-        <a href="{{ route('employer.company.edit') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center space-x-4 hover:border-indigo-300 hover:shadow-md transition">
-            <div class="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+        <a href="{{ route('employer.company.edit') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center space-x-4 hover:border-primary-300 hover:shadow-md transition">
+            <div class="flex-shrink-0 w-10 h-10 bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
             </div>
             <div>
@@ -106,19 +101,15 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @php
-                                        $statusColors = [
-                                            'pending' => 'bg-yellow-100 text-yellow-800',
-                                            'reviewing' => 'bg-blue-100 text-blue-800',
-                                            'shortlisted' => 'bg-indigo-100 text-indigo-800',
-                                            'interview' => 'bg-purple-100 text-purple-800',
-                                            'offered' => 'bg-green-100 text-green-800',
-                                            'hired' => 'bg-emerald-100 text-emerald-800',
-                                            'rejected' => 'bg-red-100 text-red-800',
-                                        ];
-                                        $color = $statusColors[$application->status] ?? 'bg-gray-100 text-gray-800';
+                                        // 3-state model: pending (awaiting reply) / accepted / rejected.
+                                        $statusMeta = match($application->status) {
+                                            'accepted' => ['bg-green-100 text-green-800', 'Accepted'],
+                                            'rejected' => ['bg-red-100 text-red-800', 'Rejected'],
+                                            default     => ['bg-gray-100 text-gray-700', 'Awaiting Reply'],
+                                        };
                                     @endphp
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
-                                        {{ ucfirst($application->status) }}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusMeta[0] }}">
+                                        {{ $statusMeta[1] }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

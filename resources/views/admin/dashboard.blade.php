@@ -30,15 +30,17 @@
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-6">
             <div class="text-sm font-medium text-gray-500">Total Applications</div>
-            <div class="mt-2 text-3xl font-bold text-blue-600">{{ number_format($stats['total_applications'] ?? 0) }}</div>
+            <div class="mt-2 text-3xl font-bold text-primary-600">{{ number_format($stats['total_applications'] ?? 0) }}</div>
+        </div>
+        {{-- MOD 6: "Companies" counter removed; replaced with user-status stats
+             (MOD 4) — Active and Deactivated user counts. --}}
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="text-sm font-medium text-gray-500">Active Users</div>
+            <div class="mt-2 text-3xl font-bold text-green-600">{{ number_format($stats['active_users'] ?? 0) }}</div>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <div class="text-sm font-medium text-gray-500">Total Companies</div>
-            <div class="mt-2 text-3xl font-bold text-gray-900">{{ number_format($stats['total_companies'] ?? 0) }}</div>
-        </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <div class="text-sm font-medium text-gray-500">Verified Companies</div>
-            <div class="mt-2 text-3xl font-bold text-amber-600">{{ number_format($stats['verified_companies'] ?? 0) }}</div>
+            <div class="text-sm font-medium text-gray-500">Deactivated Users</div>
+            <div class="mt-2 text-3xl font-bold text-gray-500">{{ number_format($stats['deactivated_users'] ?? 0) }}</div>
         </div>
     </div>
 
@@ -63,7 +65,7 @@
                         @forelse($recentJobs as $job)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-3 font-medium text-gray-900">{{ Str::limit($job->title, 30) }}</td>
-                                <td class="px-6 py-3 text-gray-600">{{ $job->company->name ?? 'N/A' }}</td>
+                                <td class="px-6 py-3 text-gray-600">{{ $job->user->company_name ?? 'N/A' }}</td>
                                 <td class="px-6 py-3">
                                     @if($job->status === 'active')
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>

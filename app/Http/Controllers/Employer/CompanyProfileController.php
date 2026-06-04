@@ -3,54 +3,44 @@
 namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
+/*
+|--------------------------------------------------------------------------
+| WHAT: Lets an employer view and edit their company profile.
+| WHY:  Company fields live on the EMPLOYER's user record (company_name,
+|       company_description, company_location, company_website, industry).
+| MOD 18: Company branding/images removed — there is no logo/banner upload.
+|       The profile is text-only. Location must be a Moroccan city.
+|--------------------------------------------------------------------------
+*/
 class CompanyProfileController extends Controller
 {
     public function edit()
     {
-        $company = auth()->user()->company;
-        return view('employer.company.edit', compact('company'));
+        // The employer's own user record carries the company fields.
+        return view('employer.company.edit', [
+            'company' => auth()->user(),
+            'cities' => config('morocco.cities'),
+        ]);
     }
 
     public function update(Request $request)
     {
+        // MOD 18: text fields only — no image/logo handling.
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:5000'],
-            'website' => ['nullable', 'url', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'location' => ['nullable', 'string', 'max:255'],
+            'company_name' => ['required', 'string', 'max:255'],
+            'company_description' => ['nullable', 'string', 'max:5000'],
+            'company_website' => ['nullable', 'url', 'max:255'],
+            // MOD 18/2: company location is a Moroccan city from the list.
+            'company_location' => ['nullable', \Illuminate\Validation\Rule::in(config('morocco.cities'))],
             'industry' => ['nullable', 'string', 'max:255'],
-            'size' => ['nullable', 'in:1-10,11-50,51-200,201-500,500+'],
-            'logo' => ['nullable', 'image', 'max:2048'],
-            'banner' => ['nullable', 'image', 'max:4096'],
+        ], [
+            'company_location.in' => 'Please choose a valid Moroccan city.',
         ]);
 
-        if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')->store('companies/logos', 'public');
-        } else {
-            unset($validated['logo']);
-        }
-
-        if ($request->hasFile('banner')) {
-            $validated['banner'] = $request->file('banner')->store('companies/banners', 'public');
-        } else {
-            unset($validated['banner']);
-        }
-
-        $company = auth()->user()->company;
-
-        if ($company) {
-            $company->update($validated);
-        } else {
-            $validated['user_id'] = auth()->id();
-            $validated['slug'] = Str::slug($validated['name']) . '-' . auth()->id();
-            Company::create($validated);
-        }
+        // Persist the company fields straight onto the employer's user row.
+        auth()->user()->update($validated);
 
         return back()->with('success', 'Company profile updated!');
     }
