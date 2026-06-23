@@ -1,11 +1,108 @@
 @import 'tailwindcss';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Scan the React SPA sources for utility classes (replaces the old Blade globs). */
+@source '../**/*.{js,jsx}';
 
+/*
+   ============================================================
+   Crimson theme + Poppins typography — migrated from the old runtime
+   Tailwind CDN config (formerly inline in layouts/app.blade.php) into the
+   Vite/PostCSS (Tailwind v4) build.
+
+   WHAT: A red/crimson brand palette applied app-wide, with Poppins as the
+         default font.
+   WHY:  The original design hardcodes `indigo-*` / `blue-*` / `purple-*`
+         utility classes throughout the markup. Rather than rewrite every
+         component, we REDEFINE those built-in palettes to the crimson scale —
+         so `text-indigo-600`, `bg-blue-600`, `from-purple-700`, etc. all render
+         as crimson, exactly as they did under the CDN config. This also
+         enforces the spec's "no blue" rule: there is no blue left to leak.
+   HOW:  In Tailwind v4, color utilities resolve to `--color-<name>-<shade>`
+         theme variables. Overriding those variables here recolors every
+         existing utility. Default palettes we still use as-is (red, green,
+         amber, gray, …) are left untouched.
+
+   Crimson scale — 500 is the brand primary (#E63946), 600 the hover/darker
+   crimson (#C41E3A), 800 the burgundy secondary (#8B0000).
+   ============================================================
+*/
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Poppins everywhere via the default sans stack. */
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* `primary` — the semantic brand palette (preferred going forward). */
+    --color-primary-50: #fdf2f3;
+    --color-primary-100: #fce7e9;
+    --color-primary-200: #f9cdd2;
+    --color-primary-300: #f3a3ac;
+    --color-primary-400: #ec6b7a;
+    --color-primary-500: #e63946;
+    --color-primary-600: #c41e3a;
+    --color-primary-700: #a3182f;
+    --color-primary-800: #8b0000;
+    --color-primary-900: #6b1b1b;
+    --color-primary-950: #450a0a;
+
+    /* `crimson` — convenience alias matching the spec's vocabulary. */
+    --color-crimson-50: #fdf2f3;
+    --color-crimson-100: #fce7e9;
+    --color-crimson-200: #f9cdd2;
+    --color-crimson-300: #f3a3ac;
+    --color-crimson-400: #ec6b7a;
+    --color-crimson-500: #e63946;
+    --color-crimson-600: #c41e3a;
+    --color-crimson-700: #a3182f;
+    --color-crimson-800: #8b0000;
+    --color-crimson-900: #6b1b1b;
+    --color-crimson-950: #450a0a;
+
+    /* Override legacy `indigo` so old utilities recolor to crimson. */
+    --color-indigo-50: #fdf2f3;
+    --color-indigo-100: #fce7e9;
+    --color-indigo-200: #f9cdd2;
+    --color-indigo-300: #f3a3ac;
+    --color-indigo-400: #ec6b7a;
+    --color-indigo-500: #e63946;
+    --color-indigo-600: #c41e3a;
+    --color-indigo-700: #a3182f;
+    --color-indigo-800: #8b0000;
+    --color-indigo-900: #6b1b1b;
+    --color-indigo-950: #450a0a;
+
+    /* Override legacy `blue` → crimson (kills every stray blue). */
+    --color-blue-50: #fdf2f3;
+    --color-blue-100: #fce7e9;
+    --color-blue-200: #f9cdd2;
+    --color-blue-300: #f3a3ac;
+    --color-blue-400: #ec6b7a;
+    --color-blue-500: #e63946;
+    --color-blue-600: #c41e3a;
+    --color-blue-700: #a3182f;
+    --color-blue-800: #8b0000;
+    --color-blue-900: #6b1b1b;
+    --color-blue-950: #450a0a;
+
+    /* Override legacy `purple` → crimson. */
+    --color-purple-50: #fdf2f3;
+    --color-purple-100: #fce7e9;
+    --color-purple-200: #f9cdd2;
+    --color-purple-300: #f3a3ac;
+    --color-purple-400: #ec6b7a;
+    --color-purple-500: #e63946;
+    --color-purple-600: #c41e3a;
+    --color-purple-700: #a3182f;
+    --color-purple-800: #8b0000;
+    --color-purple-900: #6b1b1b;
+    --color-purple-950: #450a0a;
+
+    /* Burgundy — secondary / danger emphasis. */
+    --color-burgundy: #8b0000;
+    --color-burgundy-light: #a3182f;
+    --color-burgundy-dark: #6b1b1b;
+}
+
+/* Guarantee Poppins on the body even before preflight applies (no FOUT). */
+body {
+    font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 }

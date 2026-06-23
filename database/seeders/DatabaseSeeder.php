@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Categories
+        
         $categories = [
             ['name' => 'Technology', 'slug' => 'technology', 'icon' => 'tech'],
             ['name' => 'Design', 'slug' => 'design', 'icon' => 'design'],
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             Category::create($cat);
         }
 
-        // MOD 5: Super Admin — the single top-tier account (manages normal admins).
+        
         User::create([
             'name' => 'Super Admin',
             'email' => 'superadmin@jobboard.com',
@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // A normal admin (can only manage regular users).
+        
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@jobboard.com',
@@ -52,8 +52,8 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // Employer users. Company info lives on the user record (no Company model).
-        // MOD 2: locations are Moroccan cities.
+        
+        
         $employers = [
             ['name' => 'John Smith', 'email' => 'employer@jobboard.com', 'company' => 'TechCorp Solutions', 'industry' => 'Technology', 'location' => 'Casablanca'],
             ['name' => 'Sarah Johnson', 'email' => 'sarah@designhub.com', 'company' => 'DesignHub Agency', 'industry' => 'Design', 'location' => 'Rabat'],
@@ -69,7 +69,7 @@ class DatabaseSeeder extends Seeder
                 'email' => $emp['email'],
                 'password' => Hash::make('password'),
                 'role' => 'employer',
-                // MOD 4: leave the last employer deactivated to demo the lockout.
+                
                 'status' => $i === count($employers) - 1 ? 'deactivated' : 'active',
                 'email_verified_at' => now(),
                 'company_name' => $emp['company'],
@@ -80,7 +80,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Job seeker users
+        //
         $seekerData = [
             ['name' => 'Alice Cooper', 'email' => 'seeker@jobboard.com', 'skills' => ['PHP', 'Laravel', 'JavaScript', 'Vue.js']],
             ['name' => 'Bob Martinez', 'email' => 'bob@example.com', 'skills' => ['Python', 'Django', 'React', 'PostgreSQL']],
@@ -91,8 +91,8 @@ class DatabaseSeeder extends Seeder
 
         $seekers = [];
         foreach ($seekerData as $index => $seeker) {
-            // Most seekers have a default CV on file; the LAST (Eva) does not,
-            // so the "must upload a CV before applying" gate can be demonstrated.
+            
+            
             $hasResume = $index < count($seekerData) - 1;
 
             $seekers[] = User::create([
@@ -112,11 +112,11 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Job listings. Schema reminders:
-        //  - type ∈ {full-time, part-time, remote, internship}; remote => location NULL
-        //  - exp  ∈ {entry_level, mid_level, senior, lead}
-        //  - edu  ∈ {none, bac, bac+2, bac+3, bac+5}
-        //  - salary in MAD; status active/inactive; MOD 1: no is_featured.
+        
+        
+        
+        
+        
         $jobs = [
             ['title' => 'Senior Laravel Developer', 'company' => 0, 'category' => 1, 'type' => 'full-time', 'exp' => 'senior', 'edu' => 'bac+5', 'location' => 'Casablanca', 'salary_min' => 18000, 'salary_max' => 28000, 'skills' => ['PHP', 'Laravel', 'MySQL', 'Redis', 'Vue.js']],
             ['title' => 'Frontend React Developer', 'company' => 0, 'category' => 1, 'type' => 'remote', 'exp' => 'mid_level', 'edu' => 'bac+3', 'location' => 'Casablanca', 'salary_min' => 14000, 'salary_max' => 22000, 'skills' => ['JavaScript', 'React', 'TypeScript', 'CSS']],
@@ -138,7 +138,7 @@ class DatabaseSeeder extends Seeder
         $jobModels = [];
         foreach ($jobs as $i => $job) {
             $employer = $employerModels[$job['company']];
-            // MOD 14: remote jobs have NO location.
+            
             $location = $job['type'] === 'remote' ? null : $job['location'];
 
             $jobModels[] = JobListing::create([
@@ -156,13 +156,13 @@ class DatabaseSeeder extends Seeder
                 'salary_min' => $job['salary_min'],
                 'salary_max' => $job['salary_max'],
                 'skills' => $job['skills'],
-                'status' => 'active',   // MOD 16: published immediately
+                'status' => 'active',   
                 'published_at' => now()->subDays(rand(1, 30)),
             ]);
         }
 
-        // Applications — 3-state model: pending / accepted / rejected, with a
-        // sample employer response on accepted/rejected.
+        
+        
         $acceptMessages = [
             "Congratulations! We'd like to invite you for an interview. Are you available next week?",
             "Great news, we're excited to move forward with your application.",
@@ -186,7 +186,7 @@ class DatabaseSeeder extends Seeder
                 Application::create([
                     'user_id' => $seeker->id,
                     'job_listing_id' => $job->id,
-                    // The application freezes a copy of the seeker's default CV.
+                    
                     'resume_path' => $seeker->resume_path,
                     'resume_file_name' => $seeker->resume_file_name,
                     'cv_is_default' => true,
@@ -197,7 +197,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Saved jobs
+        
         foreach ($seekers as $seeker) {
             $randomJobs = collect($jobModels)->shuffle()->take(rand(1, 4));
             foreach ($randomJobs as $job) {
